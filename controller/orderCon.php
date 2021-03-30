@@ -274,9 +274,7 @@ if(isset($_GET['orderConfirm_id'])){
    date_default_timezone_set("Asia/Colombo");
     $deliveredTime=date("h:i:sa");
    $result=orderModel::requestOrderConfirm($connection,$deliveredTime,$order_id);
-   // header('Location:../views/paymentFood_history.php');
-   header('Location:../views/paymentFood_history.php?success&order_id='.$order_id.'');
-
+   header('Location:../views/paymentFood_history.php?success&id='.$order_id.'');
 }
 
 
@@ -351,33 +349,29 @@ if(isset($_POST['cancel'])){
 // long term date controller
 if(isset($_POST['date']) && isset($_POST['orderId']))
 {
+   $state="";
    date_default_timezone_set("Asia/Colombo");
    $today=date('Y-m-d');
    $date=$_POST['date'];
-   $todayObj=date_create($today);
-   $dateObj=date_create($date);
-   $diff=date_diff($dateObj,$todayObj);
    $order_id=$_POST['orderId'];
    $result=orderModel::checkLongTermState($connection,$order_id,$date);
    $resultFetch=mysqli_fetch_assoc($result);
    $lastDateobj=orderModel::longTermLast($connection,$order_id);
    $lastDateFetch=mysqli_fetch_assoc($lastDateobj);
    $lastDate=$lastDateFetch['day'];
-   $lastDate=date_create($lastDate);
-   if($todayObj->format('%d') == $dateObj->format('%d'))
-   {
+   // if(date_diff($todayObj,$startDate)->invert){
+   //    $state='qual';
+   // }
+   if(strtotime($today)==strtotime($date)){
       $state='qual';
    }
-   if($todayObj->format('%d') < $dateObj->format('%d'))
-   {
+   if(strtotime($today) < strtotime($date)){
       $state='plus';
    }
-   if($todayObj->format('%d') > $dateObj->format('%d'))
-   {
+   if(strtotime($today) > strtotime($date)){
       $state='minus';
    }
-   if($todayObj->format('%d') > $lastDate->format('%d'))
-   {
+   if(strtotime($today) >= strtotime($lastDate)){
       $complete='complete';
    }
    else{
@@ -388,8 +382,8 @@ if(isset($_POST['date']) && isset($_POST['orderId']))
    $data=array(
       'date'=>$state,
       'delivery'=> $resultFetch['delivery_state'],
-      'complete'=>$complete
-   );
+      'complete'=>$complete,
+      );
  
     echo json_encode($data);
 }
